@@ -1,7 +1,7 @@
 #  Define Entities and Relationships in ER Diagram
 
 ## Objective
-Design an Entity-Relationship (ER) diagram for the Airbnb database based on the specification.  
+Design an Entity-Relationship (ER) diagram for the Airbnb database.
 The ER diagram represents entities, their attributes, and relationships.
 
 ---

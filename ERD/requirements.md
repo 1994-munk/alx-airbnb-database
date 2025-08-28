@@ -63,7 +63,7 @@ The ER diagram represents entities, their attributes, and relationships.
 ## ER Diagram
 The ER diagram was created using [dbdiagram.io](https://dbdiagram.io/) and exported as an image.
 
-![ER Diagram](ERD.png)
+![ER Diagram](ERD(2).png)
 
 ---
 

@@ -1,43 +1,86 @@
-# Query Optimization Report
+# Optimization Report
 
-## Initial Query
-The initial query joined four tables: `bookings`, `users`, `properties`, and `payments`.  
-It retrieved booking details along with user, property, and payment information.
+## Task: Optimize Complex Queries
+
+### Initial Query
+The initial query retrieved all bookings with user, property, and payment details:
 
 ```sql
-SELECT b.id, u.name, p.name, pay.amount, pay.status
+SELECT
+    b.id           AS booking_id,
+    b.start_date,
+    b.end_date,
+    u.id           AS user_id,
+    u.name         AS user_name,
+    u.email        AS user_email,
+    p.id           AS property_id,
+    p.name         AS property_name,
+    pay.id         AS payment_id,
+    pay.amount,
+    pay.status
 FROM bookings b
-JOIN users u ON b.user_id = u.id
+JOIN users u      ON b.user_id     = u.id
 JOIN properties p ON b.property_id = p.id
-JOIN payments pay ON b.id = pay.booking_id;
+JOIN payments pay ON b.id          = pay.booking_id
+WHERE b.start_date >= '2025-01-01'
+  AND pay.status = 'completed';
 
 Performance Analysis
 
-Running EXPLAIN ANALYZE showed sequential scans on bookings and payments.
+EXPLAIN ANALYZE on the initial query showed:
 
-Query execution time was relatively high (e.g., ~250 ms).
+Full scans on large tables (bookings, payments).
 
-Refactored Query
+High cost because filtering (WHERE) was applied after the joins.
 
-After creating indexes on frequently joined columns:
+Refactored / Optimized Query
 
-bookings.user_id
+The optimized query applied filters early by using Common Table Expressions (CTEs):
+WITH
+  filtered_bookings AS (
+    SELECT id, user_id, property_id, start_date, end_date
+    FROM bookings
+    WHERE start_date >= '2025-01-01'
+  ),
+  completed_payments AS (
+    SELECT booking_id, id AS payment_id, amount
+    FROM payments
+    WHERE status = 'completed'
+  )
+SELECT
+    fb.id           AS booking_id,
+    fb.start_date,
+    fb.end_date,
+    u.id            AS user_id,
+    u.name          AS user_name,
+    u.email         AS user_email,
+    p.id            AS property_id,
+    p.name          AS property_name,
+    cp.payment_id   AS payment_id,
+    cp.amount
+FROM filtered_bookings fb
+JOIN users u       ON fb.user_id     = u.id
+JOIN properties p  ON fb.property_id = p.id
+JOIN completed_payments cp ON fb.id  = cp.booking_id
+ORDER BY fb.start_date DESC;
 
-bookings.property_id
+Improvements Observed
 
-payments.booking_id
+Filters applied before joins reduced row counts significantly.
 
-the same query was re-run.
+EXPLAIN ANALYZE showed:
 
-Improvements
+Index scans instead of sequential scans.
 
-Execution plan switched from sequential scans to index scans.
+Reduced overall cost and execution time.
 
-Query execution time dropped to ~30 ms.
-
-The query logic stayed the same, but indexing reduced the cost of lookups.
 
 Conclusion
 
-Optimization doesn’t always require rewriting queries — adding the right indexes can significantly improve performance.
-In this case, query execution time improved by almost 10x faster.
+The optimized query is more efficient because:
+
+Filters are pushed down into subqueries (CTEs).
+
+Joins operate only on already-filtered datasets.
+
+Query planner takes advantage of existing indexes on foreign keys.

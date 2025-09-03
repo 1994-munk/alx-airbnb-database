@@ -16,3 +16,8 @@ This folder contains SQL queries for practicing different types of joins.
 ## Files
 - `joins_queries.sql` → Contains the SQL queries
 - `README.md` → Documentation for this task
+
+## Subqueries
+
+- **Non-correlated subquery**: Finds all properties where the average rating is greater than 4.0.
+- **Correlated subquery**: Finds users who have made more than 3 bookings.

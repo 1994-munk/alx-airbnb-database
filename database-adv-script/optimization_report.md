@@ -25,13 +25,15 @@ JOIN payments pay ON b.id          = pay.booking_id
 WHERE b.start_date >= '2025-01-01'
   AND pay.status = 'completed';
 
-Performance Analysis
+🔎 Performance Analysis
 
-EXPLAIN ANALYZE on the initial query showed:
+Running EXPLAIN ANALYZE on the initial query showed:
 
-Full scans on large tables (bookings, payments).
+Full table scans on bookings and payments.
 
-High cost because filtering (WHERE) was applied after the joins.
+Filtering (WHERE) applied after joining large tables, making it less efficient.
+
+High overall query cost due to unnecessary rows being joined before filtering.
 
 Refactored / Optimized Query
 
@@ -64,23 +66,22 @@ JOIN properties p  ON fb.property_id = p.id
 JOIN completed_payments cp ON fb.id  = cp.booking_id
 ORDER BY fb.start_date DESC;
 
-Improvements Observed
+📈 Improvements Observed
 
-Filters applied before joins reduced row counts significantly.
+Filters are applied early, reducing rows before joins.
 
-EXPLAIN ANALYZE showed:
+Joins now operate only on already-filtered datasets.
 
-Index scans instead of sequential scans.
+Query planner switched from sequential scans → index scans (faster).
 
-Reduced overall cost and execution time.
+Overall execution time and cost decreased significantly.
 
+📝 Conclusion
 
-Conclusion
+The optimization was successful because:
 
-The optimized query is more efficient because:
+Filters were pushed down into subqueries (CTEs).
 
-Filters are pushed down into subqueries (CTEs).
+Unnecessary rows were eliminated before expensive joins.
 
-Joins operate only on already-filtered datasets.
-
-Query planner takes advantage of existing indexes on foreign keys.
+Indexes were leveraged effectively by the query planner.
